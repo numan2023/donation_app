@@ -1,24 +1,57 @@
-# README
+# 一度のフォーム送信で、複数のモデルに設置されたバリデーションを通過する
+# 送信した内容がバリデーションを通過せず保存できなかった場合、複数のモデルについてのエラーメッセージを表示
+# -> Formオブジェクトパターン : 1つのフォーム送信で複数のモデルを操作したい場合やテーブルに保存しない情報にバリデーションを設定したい場合に使用（※newアクション生成インスタンスをform_withのmodelオプションに指定、インスタンスにバリデーションを実行可能）
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+手順１：新たにmodelsディレクトリ直下にファイルを作成し、クラスを定義する
+手順２：作成したクラスにform_withメソッドに対応する機能とバリデーションを行う機能を持たせる
+    include ActiveModel::Model）ActiveModel::Modelをincludeすると、クラスのインスタンスはActiveRecordを継承したクラスのインスタンスと同様にform_withやrenderなどのヘルパーメソッドの引数として扱え、バリデーションの機能を使用できるようになる。
+手順３：保存したい複数のテーブルのカラム名全てを属性値として扱えるようにする
+手順４：バリデーションの処理を書く
+手順５：データをテーブルに保存する処理を書く
+手順６：コントローラーのnewアクション、createアクションでFormオブジェクトのインスタンスを生成するようにする
+手順７：フォーム作成の部分をFormオブジェクトのインスタンスを引数として渡す形に変更する
 
-Things you may want to cover:
 
-* Ruby version
+# attr_accessor
+  # 記述したクラスにゲッターとセッターを定義してくれるメソッド。与えられた引数を元に属性を設定し、これを取得するメソッド（ゲッター）と更新するメソッド（セッター）を定義してくれる -> attr_accessorを用いてゲッターとセッターを省略できる
+  ・ 値の取得ができるメソッドの定義(ゲッター：@order.price)
+  ・ 値の更新ができるメソッドの定義(セッター：@order.price = 5000)
+  # Railsは、ActiveRecordを継承することで、テーブルに存在するカラムについて前述を自動的に行っている。
+  - モデルに対応するテーブルのカラム名以外の属性を扱いたい場合はattr_accessorを用いて追加する -> フォームオブジェクトに応用している。
 
-* System dependencies
+  --------------------------------------------------
+  # 以下はOrderモデルのイメージ
+  class Order
+    def price #ゲッター
+      @price
+    end
 
-* Configuration
+    def price=(price) #セッター
+      @price = price
+    end
+  end
 
-* Database creation
 
-* Database initialization
+  # 以下はコントローラーからの呼び出しイメージ
 
-* How to run the test suite
+  @order = Order.new
+  @order.price = 3000
+    #=> セッターが設定してるので、priceを3000と設定できる
+  puts @order.price
+    #=> ゲッターが設定してあるので、3000が出力される
+  --------------------------------------------------
 
-* Services (job queues, cache servers, search engines, etc.)
+  # 以下はOrderモデルのイメージ
+  class Order
+    attr_accessor :price
+  end
 
-* Deployment instructions
 
-* ...
+  # 以下はコントローラーからの呼び出しイメージ
+
+  @order = Order.new
+  @order.price = 3000
+    #=> セッターが設定してるので、priceを3000と設定できる
+  puts @order.price
+    #=> ゲッターが設定してあるので、3000が出力される
+  --------------------------------------------------
